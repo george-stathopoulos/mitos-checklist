@@ -46,3 +46,4 @@
 .mitoschk-jbar { padding: .6em 1em; margin: 1em 0 .6em; }
 .mitoschk-inline .mitoschk-progress { top: calc(var(--mitoschk-top, 0px) + var(--mitoschk-bar, 0px)); z-index: 25; background: #fff; border: 1px solid #dcdcde; margin-top: 0; }
 @media print { .mitoschk-progress { position: static; box-shadow: none; } }
+.mitoschk-danger { color: #b32d2e !important; }

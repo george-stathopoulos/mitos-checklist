@@ -60,6 +60,24 @@
 		root.appendChild( f );
 		root.appendChild( el( 'p', 'mitoschk-foot', S.adapted ) );
 		root.appendChild( el( 'p', 'mitoschk-foot', S.disclaimer ) );
+		var all = el( 'p', 'mitoschk-foot' );
+		var b = el( 'button', 'mitoschk-print mitoschk-danger', S.resetAll );
+		b.type = 'button';
+		b.onclick = resetAll;
+		all.appendChild( b );
+		root.appendChild( all );
+	}
+
+	/* Delete every key this plugin stored, then reload so inputs and searches are cleared too. */
+	function resetAll() {
+		if ( ! window.confirm( S.confirmAll ) ) { return; }
+		try {
+			Object.keys( localStorage ).filter( function ( k ) { return k.indexOf( 'mitoschk:' ) === 0; } )
+				.forEach( function ( k ) { localStorage.removeItem( k ); } );
+			sessionStorage.setItem( 'mitoschk-cleared', '1' );
+		} catch ( e ) {}
+		history.replaceState( null, '', location.pathname + location.search );
+		location.reload();
 	}
 
 	function section( root, title, items, render ) {
@@ -537,4 +555,16 @@
 	}
 
 	document.querySelectorAll( '.mitoschk' ).forEach( start );
+	try {
+		if ( sessionStorage.getItem( 'mitoschk-cleared' ) ) {
+			sessionStorage.removeItem( 'mitoschk-cleared' );
+			var first = document.querySelector( '.mitoschk' );
+			if ( first ) {
+				var n = el( 'p', 'mitoschk-deadline', S.clearedAll );
+				n.setAttribute( 'role', 'status' );
+				first.parentNode.insertBefore( n, first );
+				setTimeout( function () { n.remove(); }, 6000 );
+			}
+		}
+	} catch ( e ) {}
 }() );
