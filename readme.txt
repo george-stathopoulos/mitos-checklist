@@ -20,6 +20,9 @@ Procedure content comes from the Mitos API and is licensed CC BY-SA 4.0. Informa
 
 == Changelog ==
 
+= 0.3.1 =
+The Greek website is now on by default even when upgrading an already-active plugin (no activation step runs then). Admin notice shows whether it is on, with a link to the site.
+
 = 0.3.0 =
 Standalone mode: on activation the plugin serves a ready-made Greek website on the front end (can be turned off in Settings → Mitos Checklist). Sticky progress bars, working reset, open checklists stay open.
 

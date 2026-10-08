@@ -6,11 +6,25 @@ class Mitoschk_Admin {
 
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'notice' ) );
 		add_action( 'admin_post_mitoschk_save', array( __CLASS__, 'save' ) );
 	}
 
 	public static function menu() {
 		add_options_page( 'Mitos Checklist', 'Mitos Checklist', 'manage_options', 'mitos-checklist', array( __CLASS__, 'page' ) );
+	}
+
+	/** Tell the owner, on the plugins screen and our settings page, that the front end is now the plugin's website. */
+	public static function notice() {
+		$screen = get_current_screen();
+		if ( ! $screen || ! current_user_can( 'manage_options' ) || ! in_array( $screen->id, array( 'plugins', 'settings_page_mitos-checklist' ), true ) ) {
+			return;
+		}
+		if ( Mitoschk_Site::enabled() ) {
+			echo '<div class="notice notice-success"><p><strong>Mitos Checklist:</strong> ο ελληνικός ιστότοπος είναι ενεργός στο front end. <a href="' . esc_url( home_url( '/' ) ) . '" target="_blank" rel="noopener">Δείτε τον ιστότοπο</a>. Αν δεν τον βλέπετε, καθαρίστε την cache (πρόσθετο cache ή CDN). Για απενεργοποίηση: Ρυθμίσεις → Mitos Checklist.</p></div>';
+		} else {
+			echo '<div class="notice notice-info"><p><strong>Mitos Checklist:</strong> ο έτοιμος ιστότοπος είναι απενεργοποιημένος. Ενεργοποιήστε τον στις <a href="' . esc_url( admin_url( 'options-general.php?page=mitos-checklist' ) ) . '">Ρυθμίσεις</a>.</p></div>';
+		}
 	}
 
 	public static function save() {

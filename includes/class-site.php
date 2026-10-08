@@ -22,7 +22,8 @@ class Mitoschk_Site {
 	}
 
 	public static function enabled() {
-		return '1' === get_option( self::OPT_ON, '0' );
+		// On unless the owner switched it off (also covers upgrades, where no activation runs).
+		return '0' !== (string) get_option( self::OPT_ON, '1' );
 	}
 
 	public static function brand() {

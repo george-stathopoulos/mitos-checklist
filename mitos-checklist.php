@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mitos Checklist
  * Description: Serves a ready-made Greek website (when enabled) and turns official Greek administrative procedures from the Mitos registry (mitos.gov.gr) into saveable preparation checklists, embedded with a shortcode.
- * Version: 0.3.0
+ * Version: 0.3.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MITOSCHK_VERSION', '0.3.0' );
+define( 'MITOSCHK_VERSION', '0.3.1' );
 define( 'MITOSCHK_FILE', __FILE__ );
 define( 'MITOSCHK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MITOSCHK_URL', plugin_dir_url( __FILE__ ) );
