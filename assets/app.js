@@ -72,6 +72,19 @@
 			if ( p.description ) { root.appendChild( el( 'p', null, p.description ) ); }
 		}
 
+		if ( p.source_date ) {
+			if ( ! state.seen ) { state.seen = p.source_date; save( p.id, state ); }
+			else if ( state.seen !== p.source_date ) {
+				var ch = el( 'div', 'mitoschk-warn' );
+				ch.appendChild( el( 'span', null, fmt( S.changed, new Date( p.source_date ).toLocaleDateString( cfg.dateFmt || 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' } ) ) + ' ' ) );
+				var ok = el( 'button', 'mitoschk-back', S.gotIt );
+				ok.type = 'button';
+				ok.onclick = function () { state.seen = p.source_date; save( p.id, state ); ch.remove(); };
+				ch.appendChild( ok );
+				root.appendChild( ch );
+			}
+		}
+
 		var trust = el( 'p', 'mitoschk-trust' );
 		if ( p.reviewed ) { trust.appendChild( el( 'span', 'mitoschk-badge', fmt( S.reviewed, date( p.reviewed ) ) ) ); }
 		trust.appendChild( el( 'span', null, fmt( S.refreshed, date( p.synced ) ) ) );
@@ -103,7 +116,8 @@
 		}
 
 		function check( prefix, it, i ) {
-			var li = el( 'li', 'mitoschk-item' );
+			var li = el( 'li', 'mitoschk-item' + ( it.alt ? ' is-alt' : '' ) );
+			if ( it.groupStart ) { li.appendChild( el( 'p', 'mitoschk-anyone', S.anyOne ) ); }
 			var key = prefix + ( it.key || i );
 			var lab = el( 'label' );
 			var cb = el( 'input' );
@@ -122,8 +136,17 @@
 			if ( it.how ) { li.appendChild( el( 'p', 'mitoschk-small', it.how ) ); }
 			if ( it.note ) { li.appendChild( el( 'p', 'mitoschk-small', it.note ) ); }
 			if ( it.url ) { li.appendChild( link( it.url ) ); }
+			if ( it.source ) {
+				var w = el( 'p', 'mitoschk-small', fmt( S.whereGet, '' ) );
+				w.appendChild( link( it.source.url, it.source.title || it.source.url ) );
+				li.appendChild( w );
+			}
 			return li;
 		}
+
+		( p.documents || [] ).forEach( function ( d, i, all ) {
+			d.groupStart = d.alt && ( i === 0 || ! all[ i - 1 ].alt );
+		} );
 
 		section( root, S.conditions, p.conditions, function ( c, i ) { return check( 'c', c, i ); } );
 		section( root, S.documents, p.documents, function ( d, i ) { d.key = d.key || i + 1; return check( 'd', d, i ); } );

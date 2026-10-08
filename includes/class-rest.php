@@ -42,6 +42,28 @@ class Mitoschk_Rest {
 		return rest_ensure_response( $j );
 	}
 
+	/**
+	 * Documents that are themselves issued through a Mitos procedure.
+	 * Pattern => Mitos code. Filterable via `mitoschk_document_sources`.
+	 */
+	private static function document_source( $text, $data ) {
+		$map = apply_filters( 'mitoschk_document_sources', array(
+			'/φορολογικής ενημερότητας/iu' => '439993',
+			'/ασφαλιστικής ενημερότητας/iu' => '119372',
+			'/αποδεικτικ[όο] ΑΦΜ|βεβαίωση απόδοσης ΑΦΜ/iu' => '160473',
+			'/\bΑΜΚΑ\b/iu'                  => '791797',
+		) );
+		foreach ( $map as $pattern => $code ) {
+			if ( preg_match( $pattern, $text ) ) {
+				return array(
+					'title' => isset( $data[ $code ] ) ? $data[ $code ]['title'] : '',
+					'url'   => 'https://id.mitos.gov.gr/' . rawurlencode( $code ),
+				);
+			}
+		}
+		return null;
+	}
+
 	private static function reviewed( $id ) {
 		$r = get_option( Mitoschk_Sync::OPT_REVIEW, array() );
 		return is_array( $r ) && ! empty( $r[ $id ] ) ? (int) $r[ $id ] : 0;
@@ -68,6 +90,10 @@ class Mitoschk_Rest {
 		}
 		$p             = $data[ $id ];
 		$p['reviewed'] = self::reviewed( $id );
+		foreach ( $p['documents'] as &$doc ) {
+			$doc['source'] = self::document_source( $doc['title'] . ' ' . $doc['text'], $data );
+		}
+		unset( $doc );
 		return rest_ensure_response( $p );
 	}
 }

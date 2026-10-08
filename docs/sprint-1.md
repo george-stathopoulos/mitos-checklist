@@ -36,6 +36,9 @@ Still unconfirmed from official text: (a) myDATA timing, (b) what applies to non
 6. **Reviewed flag per step**, so the journey page shows what is verified and what is not.
 7. **Change warning.** If the registry's last-updated date moves after the user began, show "this procedure changed on <date>".
 
+## Status
+Done: 1 (journey model), 2 (questions), 3 (.ics reminders), 4 (document sources via Mitos procedures), 5 (alternatives grouped), 7 (change warning). Item 6 (reviewed flag) shows as a tick on each step. Greek is the default language for visitors (`mitoschk_language` filter returns `en` for English).
+
 ## Out of scope
 Accounts, uploads, AI summaries, eligibility verdicts, accountant features.
 

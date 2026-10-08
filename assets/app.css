@@ -36,3 +36,5 @@
 .mitoschk-step.is-done { background: #f0f7f1; }
 .mitoschk-date { display: block; margin: .5em 0; }
 .mitoschk-inline { margin-top: .6em; border-top: 1px dashed #dcdcde; padding-top: .4em; }
+.mitoschk-anyone { font-weight: 600; margin: 0 0 .3em; color: #50575e; }
+.mitoschk-item.is-alt { border-left: 3px solid #c3c4c7; padding-left: .8em; }

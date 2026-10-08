@@ -4,8 +4,13 @@ defined( 'ABSPATH' ) || exit;
 /** UI strings for the front end, Greek or English by site locale. */
 class Mitoschk_Strings {
 
+	/** Greek by default for every visitor. Return 'en' from the `mitoschk_language` filter for English. */
+	public static function is_greek() {
+		return 'en' !== apply_filters( 'mitoschk_language', 'el' );
+	}
+
 	public static function all() {
-		$el = 0 === strpos( determine_locale(), 'el' );
+		$el = self::is_greek();
 		$s  = array(
 			'search'      => array( 'Search a procedure…', 'Αναζήτηση διαδικασίας…' ),
 			'none'        => array( 'No procedures found.', 'Δεν βρέθηκαν διαδικασίες.' ),
@@ -40,6 +45,10 @@ class Mitoschk_Strings {
 			'waitFor'     => array( 'Do the previous step first.', 'Ολοκληρώστε πρώτα το προηγούμενο βήμα.' ),
 			'unavailable' => array( 'This procedure has not been loaded yet.', 'Η διαδικασία δεν έχει φορτωθεί ακόμη.' ),
 			'startOver'   => array( 'Start over', 'Ξεκίνημα από την αρχή' ),
+			'changed'     => array( 'This procedure was updated on %s, after you last viewed it. Re-check the details below.', 'Η διαδικασία ενημερώθηκε στις %s, μετά την τελευταία φορά που την είδατε. Ελέγξτε ξανά τις λεπτομέρειες.' ),
+			'gotIt'       => array( 'Got it', 'Το είδα' ),
+			'anyOne'      => array( 'Any one of these is enough:', 'Αρκεί ένα από τα παρακάτω:' ),
+			'whereGet'    => array( 'Where to get it: %s', 'Πού το βρίσκω: %s' ),
 			'loading'     => array( 'Loading…', 'Φόρτωση…' ),
 			'error'       => array( 'Could not load the data. Please try again later.', 'Δεν ήταν δυνατή η φόρτωση. Δοκιμάστε ξανά αργότερα.' ),
 		);

@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 class Mitoschk_Journeys {
 
 	private static function l( $en, $el ) {
-		return 0 === strpos( determine_locale(), 'el' ) ? $el : $en;
+		return Mitoschk_Strings::is_greek() ? $el : $en;
 	}
 
 	public static function all() {
@@ -87,6 +87,6 @@ class Mitoschk_Journeys {
 				}
 			}
 		}
-		return array_unique( $ids );
+		return array_unique( array_merge( $ids, array( '160473' ) ) );
 	}
 }

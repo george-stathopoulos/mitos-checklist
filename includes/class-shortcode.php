@@ -27,7 +27,7 @@ class Mitoschk_Shortcode {
 		wp_localize_script( 'mitos-checklist', 'MitosChecklist', array(
 			'rest'    => esc_url_raw( rest_url( 'mitos-checklist/v1/' ) ),
 			'strings' => Mitoschk_Strings::all(),
-			'dateFmt' => 0 === strpos( determine_locale(), 'el' ) ? 'el-GR' : 'en-GB',
+			'dateFmt' => Mitoschk_Strings::is_greek() ? 'el-GR' : 'en-GB',
 		) );
 	}
 }
