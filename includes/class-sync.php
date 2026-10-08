@@ -48,26 +48,37 @@ class Mitoschk_Sync {
 		$ok     = 0;
 		$errors = array();
 		foreach ( $ids as $id ) {
-			$res = wp_remote_get( self::API . rawurlencode( $id ), array(
-				'timeout' => 20,
-				'headers' => array( 'Accept' => 'application/json', 'User-Agent' => 'MitosChecklist/' . MITOSCHK_VERSION . '; ' . home_url() ),
-			) );
-			if ( is_wp_error( $res ) || 200 !== wp_remote_retrieve_response_code( $res ) ) {
-				$errors[ $id ] = is_wp_error( $res ) ? $res->get_error_message() : 'HTTP ' . wp_remote_retrieve_response_code( $res );
+			$rec = self::fetch( $id );
+			if ( is_wp_error( $rec ) ) {
+				$errors[ $id ] = $rec->get_error_message();
 				continue;
 			}
-			$json = json_decode( wp_remote_retrieve_body( $res ), true );
-			if ( empty( $json['data'] ) || ! is_array( $json['data'] ) ) {
-				$errors[ $id ] = 'Unexpected response';
-				continue;
-			}
-			$data[ $id ] = self::normalize( $json['data'], $id );
+			$data[ $id ] = $rec;
 			++$ok;
 		}
 		// Drop procedures the owner removed from the list.
 		$data = array_intersect_key( $data, array_flip( $ids ) );
 		update_option( self::OPT_DATA, $data, false );
 		return array( 'ok' => $ok, 'errors' => $errors );
+	}
+
+	/** Fetch and normalise one procedure from the API. @return array|WP_Error */
+	public static function fetch( $id ) {
+		$res = wp_remote_get( self::API . rawurlencode( $id ), array(
+			'timeout' => 20,
+			'headers' => array( 'Accept' => 'application/json', 'User-Agent' => 'MitosChecklist/' . MITOSCHK_VERSION . '; ' . home_url() ),
+		) );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+		if ( 200 !== wp_remote_retrieve_response_code( $res ) ) {
+			return new WP_Error( 'mitoschk_http', 'HTTP ' . wp_remote_retrieve_response_code( $res ) );
+		}
+		$json = json_decode( wp_remote_retrieve_body( $res ), true );
+		if ( empty( $json['data'] ) || ! is_array( $json['data'] ) ) {
+			return new WP_Error( 'mitoschk_bad', 'Unexpected response' );
+		}
+		return self::normalize( $json['data'], $id );
 	}
 
 	private static function t( $v ) {
@@ -165,6 +176,19 @@ class Mitoschk_Sync {
 			}
 		}
 
+		$legislation = array();
+		foreach ( (array) ( $meta['process_rules'] ?? array() ) as $r ) {
+			$u = self::url( $r['rule_url'] ?? '' );
+			if ( ! $u ) {
+				continue;
+			}
+			$label = trim( self::t( $r['rule_type'] ?? '' ) . ' ' . self::t( $r['rule_decision_number'] ?? '' ) . '/' . self::t( $r['rule_decision_year'] ?? '' ) );
+			if ( ! empty( $r['rule_article'] ) ) {
+				$label .= ' – άρθρο ' . self::t( $r['rule_article'] );
+			}
+			$legislation[] = array( 'title' => $label, 'url' => $u );
+		}
+
 		return array(
 			'id'          => (string) $id,
 			'title'       => self::t( $d['title'] ?? ( $p['official_title'] ?? '' ) ),
@@ -179,6 +203,7 @@ class Mitoschk_Sync {
 			'steps'       => $steps,
 			'links'       => $links,
 			'apply'       => $apply,
+			'legislation' => $legislation,
 		);
 	}
 }

@@ -66,7 +66,7 @@
 		if ( ! single ) {
 			var back = el( 'button', 'mitoschk-back', S.back );
 			back.type = 'button';
-			back.onclick = function () { history.pushState( null, '', location.pathname + location.search ); list( root ); };
+			back.onclick = function () { history.pushState( null, '', location.pathname + location.search ); ( root._home || list )( root ); };
 			root.appendChild( back );
 		}
 		if ( ! compact ) {
@@ -177,6 +177,11 @@
 		} );
 		root.appendChild( go );
 
+		section( root, S.legislation, p.legislation, function ( l ) {
+			var li = el( 'li' );
+			li.appendChild( link( l.url, l.title ) );
+			return li;
+		} );
 		section( root, S.links, p.links.concat( [ { title: S.source, url: p.source_url } ] ), function ( l ) {
 			var li = el( 'li' );
 			li.appendChild( link( l.url, l.title ) );
@@ -207,6 +212,7 @@
 		if ( ! step.deadline || ! startISO ) { return null; }
 		var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec( startISO );
 		if ( ! m ) { return null; }
+		if ( step.deadline.days ) { return new Date( Date.UTC( +m[ 1 ], +m[ 2 ] - 1, +m[ 3 ] + step.deadline.days ) ); }
 		return new Date( Date.UTC( +m[ 1 ], ( +m[ 2 ] - 1 ) + step.deadline.month_offset, step.deadline.day ) );
 	}
 	function dayText( d ) {
@@ -239,6 +245,12 @@
 		st.dates = st.dates || {};
 		function persist() { save( key, st ); }
 
+		if ( root._home ) {
+			var jb = el( 'button', 'mitoschk-back', S.backGuide );
+			jb.type = 'button';
+			jb.onclick = function () { history.pushState( null, '', location.pathname + location.search ); root._home( root ); };
+			root.appendChild( jb );
+		}
 		root.appendChild( el( 'h2', null, j.title ) );
 		root.appendChild( el( 'p', null, j.intro ) );
 
@@ -279,7 +291,9 @@
 			// Re-render the question warnings by redrawing the whole journey view only on answer change.
 			var steps = ( j.steps || [] ).filter( function ( s ) {
 				var cond = s.show_if || {};
-				return Object.keys( cond ).every( function ( k ) { return st.answers[ k ] !== 'yes' || cond[ k ] !== 'no'; } );
+				var only = s.show_only || {};
+				return Object.keys( cond ).every( function ( k ) { return st.answers[ k ] !== 'yes' || cond[ k ] !== 'no'; } ) &&
+					Object.keys( only ).every( function ( k ) { return st.answers[ k ] === only[ k ]; } );
 			} );
 			var done = steps.filter( function ( s ) { return st.done[ s.id ]; } ).length;
 			prog.textContent = fmt( S.stepsDone, done, steps.length );
@@ -314,6 +328,21 @@
 						if ( ! past ) { li.appendChild( ics( fmt( S.remindTitle, s.title || '' ), d ) ); }
 					}
 				}
+
+				var lk = el( 'div', 'mitoschk-go' );
+				( s.apply || [] ).forEach( function ( a ) {
+					var l = link( a.url, S.apply + ': ' + a.title );
+					l.className = 'mitoschk-btn';
+					lk.appendChild( l );
+				} );
+				li.appendChild( lk );
+				var more = el( 'ul', 'mitoschk-links' );
+				( s.links || [] ).concat( [ { title: S.officialDesc, url: s.source_url } ] ).forEach( function ( l ) {
+					var x = el( 'li' );
+					x.appendChild( link( l.url, l.title ) );
+					more.appendChild( x );
+				} );
+				li.appendChild( more );
 
 				if ( s.available ) {
 					var box = el( 'div', 'mitoschk-inline' );
@@ -381,7 +410,78 @@
 		} ).catch( function () { root.textContent = S.error; } );
 	}
 
+	function guide( root ) {
+		root.textContent = '';
+		root._home = guide;
+		root.appendChild( el( 'h2', null, S.guideTitle ) );
+		root.appendChild( el( 'p', null, S.guideIntro ) );
+
+		var jh = el( 'h3', null, S.journeys );
+		var jl = el( 'ul', 'mitoschk-list mitoschk-cards' );
+		root.appendChild( jh ); root.appendChild( jl );
+		get( 'journeys' ).then( function ( items ) {
+			items.forEach( function ( j ) {
+				var li = el( 'li' );
+				var b = el( 'button', 'mitoschk-row' );
+				b.type = 'button';
+				b.appendChild( el( 'strong', null, j.title ) );
+				b.appendChild( el( 'span', 'mitoschk-small', j.intro + ' · ' + fmt( S.stepsCount, j.steps ) ) );
+				b.onclick = function () { history.pushState( null, '', '#journey-' + j.id ); openJourney( root, j.id ); };
+				li.appendChild( b );
+				jl.appendChild( li );
+			} );
+		} ).catch( function () { jl.textContent = S.error; } );
+
+		root.appendChild( el( 'h3', null, S.searchAll ) );
+		var q = el( 'input', 'mitoschk-search' );
+		q.type = 'search'; q.placeholder = S.search; q.setAttribute( 'aria-label', S.searchAll );
+		var res = el( 'ul', 'mitoschk-list' );
+		root.appendChild( q ); root.appendChild( res );
+		var timer;
+		q.oninput = function () {
+			clearTimeout( timer );
+			timer = setTimeout( function () {
+				var t = q.value.trim();
+				res.textContent = '';
+				if ( t.length < 2 ) { return; }
+				get( 'search?q=' + encodeURIComponent( t ) ).then( function ( r ) {
+					res.textContent = '';
+					if ( ! r.indexed ) { res.appendChild( el( 'li', null, S.noIndex ) ); return; }
+					if ( ! r.results.length ) { res.appendChild( el( 'li', null, S.none ) ); return; }
+					r.results.forEach( function ( it ) {
+						var li = el( 'li' );
+						var b = el( 'button', 'mitoschk-row' );
+						b.type = 'button';
+						b.appendChild( el( 'strong', null, it.title ) );
+						b.onclick = function () { history.pushState( null, '', '#mitos-' + it.id ); open( root, it.id, false ); };
+						li.appendChild( b );
+						res.appendChild( li );
+					} );
+				} ).catch( function () { res.textContent = S.error; } );
+			}, 250 );
+		};
+		footer( root );
+	}
+
+	function openJourney( root, id ) {
+		root.textContent = S.loading;
+		get( 'journeys/' + id ).then( function ( j ) { journey( root, j, id ); } )
+			.catch( function () { root.textContent = S.error; } );
+	}
+
+	function route( root ) {
+		var h = location.hash;
+		var m = /^#mitos-(\d+)$/.exec( h );
+		var j = /^#journey-([a-z0-9_-]+)$/.exec( h );
+		if ( m ) { open( root, m[ 1 ], false ); } else if ( j ) { openJourney( root, j[ 1 ] ); } else { guide( root ); }
+	}
+
 	function start( root ) {
+		if ( root.getAttribute( 'data-guide' ) ) {
+			route( root );
+			window.addEventListener( 'popstate', function () { route( root ); } );
+			return;
+		}
 		var jid = root.getAttribute( 'data-journey' );
 		if ( jid ) {
 			get( 'journeys/' + jid ).then( function ( j ) { journey( root, j, jid ); } )

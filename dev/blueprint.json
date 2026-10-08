@@ -17,7 +17,7 @@
     },
     {
       "step": "runPHP",
-      "code": "<?php require '/wordpress/wp-load.php'; update_option( 'mitoschk_ids', '' ); Mitoschk_Sync::run(); update_option( 'mitoschk_reviewed', array( '439993' => time() ) ); wp_insert_post( array( 'post_title' => 'Paperwork guide', 'post_content' => '[mitos_journey id=\"freelancer\"]', 'post_status' => 'publish', 'post_type' => 'page' ) );"
+      "code": "<?php require '/wordpress/wp-load.php'; update_option( 'mitoschk_ids', '' ); Mitoschk_Sync::run(); $n=0; while ( ! Mitoschk_Index::build() && $n++ < 6 ) {} update_option( 'mitoschk_reviewed', array( '439993' => time() ) ); wp_insert_post( array( 'post_title' => 'Paperwork guide', 'post_content' => '[mitos_guide]', 'post_status' => 'publish', 'post_type' => 'page' ) );"
     }
   ]
 }

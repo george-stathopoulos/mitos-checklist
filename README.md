@@ -9,6 +9,10 @@ A WordPress plugin that turns official Greek administrative procedures from the 
 - Tick "Reviewed" after you verify a procedure; visitors then see a review date.
 - Greek or English interface by site language.
 
+Start page: `[mitos_guide]` offers the guided journeys and a search across all ~4,400 Mitos procedures (a local title index builds itself in the background; single procedures are fetched on demand and cached for 12 hours).
+
+Journeys: start as a sole trader, close a sole trader business, change business details or activity. Each step links to the official service, the Mitos description and the legislation.
+
 Embed a guided multi-step journey with `[mitos_journey id="freelancer"]` (start as a sole trader: asks three questions, hides steps you don't need, tracks progress, computes the e-EFKA deadline from your start date and offers a calendar reminder). Journeys are defined in `includes/class-journeys.php` and the `mitoschk_journeys` filter; their procedures sync automatically.
 
 Embed with `[mitos_checklist]` (searchable list) or `[mitos_checklist id="439993"]` (one procedure).

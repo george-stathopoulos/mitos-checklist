@@ -35,6 +35,9 @@ class Mitoschk_Admin {
 		update_option( Mitoschk_Sync::OPT_REVIEW, $reviewed, false );
 
 		$msg = 'saved';
+		if ( ! empty( $_POST['index'] ) ) {
+			$msg = Mitoschk_Index::build() ? 'indexed' : 'indexing';
+		}
 		if ( ! empty( $_POST['sync'] ) ) {
 			$r   = Mitoschk_Sync::run();
 			$msg = $r['errors'] ? 'partial' : 'synced';
@@ -56,6 +59,8 @@ class Mitoschk_Admin {
 			<h1>Mitos Checklist</h1>
 			<?php if ( 'saved' === $notice || 'synced' === $notice ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php echo 'synced' === $notice ? 'Saved and synced.' : 'Saved.'; ?></p></div>
+			<?php elseif ( 'indexed' === $notice || 'indexing' === $notice ) : ?>
+				<div class="notice notice-info is-dismissible"><p><?php echo 'indexed' === $notice ? 'Index complete.' : 'Index partly built; it continues in the background (or press the button again).'; ?></p></div>
 			<?php elseif ( 'partial' === $notice ) : ?>
 				<div class="notice notice-warning is-dismissible"><p>Saved. Some procedures could not be fetched:
 				<?php
@@ -95,11 +100,15 @@ class Mitoschk_Admin {
 				<p>
 					<button class="button button-primary" type="submit">Save</button>
 					<button class="button" type="submit" name="sync" value="1">Save and sync now</button>
+					<button class="button" type="submit" name="index" value="1">Build search index</button>
 				</p>
 			</form>
 
+			<?php $idx = Mitoschk_Index::get(); ?>
+			<p>Search index: <?php echo $idx ? esc_html( count( $idx['items'] ) . ' procedures, built ' . wp_date( 'j M Y H:i', $idx['built'] ) ) : 'not built yet (it builds itself in the background after activation).'; ?></p>
+
 			<h2>Use it</h2>
-			<p>Add <code>[mitos_checklist]</code> to any page for the searchable list, or <code>[mitos_checklist id="439993"]</code> for one procedure.</p>
+			<p><code>[mitos_guide]</code> is the full start page: journeys plus search over every Mitos procedure. Add <code>[mitos_checklist]</code> to any page for the searchable list, or <code>[mitos_checklist id="439993"]</code> for one procedure.</p>
 			<p>Procedure information © its publishers via <a href="https://mitos.gov.gr" target="_blank" rel="noopener">Mitos</a>, CC BY-SA 4.0. The plugin shows the credit automatically.</p>
 		</div>
 		<?php

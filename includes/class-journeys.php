@@ -49,6 +49,10 @@ class Mitoschk_Journeys {
 						'id'        => 'tax_start',
 						'procedure' => '113509',
 						'note'      => self::l( 'Online via myAADE, about 12 minutes, free, no documents. You need your TAXISnet codes. This is where you choose your activity codes (ΚΑΔ). Keep the certificate of commencement it produces.', 'Ηλεκτρονικά μέσω myAADE, περίπου 12 λεπτά, δωρεάν, χωρίς δικαιολογητικά. Χρειάζεστε κωδικούς TAXISnet. Εδώ επιλέγετε τους ΚΑΔ. Κρατήστε τη βεβαίωση έναρξης εργασιών.' ),
+						'links'     => array(
+							array( 'title' => self::l( 'AADE guide: starting a business', 'Οδηγός ΑΑΔΕ: έναρξη επιχειρηματικής δραστηριότητας' ), 'url' => 'https://www.aade.gr/menoy/hristikoi-odigoi/enarxi-epiheirimatikis-drastiriotitas' ),
+							array( 'title' => 'myAADE', 'url' => 'https://www1.aade.gr/gsisapps5/myaade/' ),
+						),
 						'ask_date'  => self::l( 'Date your activity started', 'Ημερομηνία έναρξης εργασιών' ),
 					),
 					array(
@@ -63,6 +67,57 @@ class Mitoschk_Journeys {
 						'procedure' => '963556',
 						'after'     => 'tax_start',
 						'note'      => self::l( 'Read this procedure to see whether and when it applies to you; its timing relative to the start is not confirmed here.', 'Διαβάστε τη διαδικασία για να δείτε αν και πότε ισχύει για εσάς. Ο χρόνος σε σχέση με την έναρξη δεν έχει επιβεβαιωθεί εδώ.' ),
+					),
+				),
+			),
+
+			'close' => array(
+				'title'     => self::l( 'Close a sole trader business', 'Διακοπή ατομικής επιχείρησης' ),
+				'intro'     => self::l( 'Close with the tax authority first, then end your e-EFKA insurance.', 'Πρώτα η διακοπή στην εφορία, μετά η λήξη ασφάλισης στον e-ΕΦΚΑ.' ),
+				'questions' => array(
+					array(
+						'id'      => 'simple_close',
+						'label'   => self::l( 'Are you a living individual closing a sole proprietorship, with no stock or fixed assets left?', 'Είστε εν ζωή φυσικό πρόσωπο που κλείνει ατομική επιχείρηση, χωρίς αποθέματα ή πάγια;' ),
+						'warn'    => self::l( 'The online closure covers only that case. Others (bankruptcy, a deceased trader closed by heirs, mergers, cases needing an inspection) go through the AADE "Τα Αιτήματά μου" application. Check the official service.', 'Η ηλεκτρονική διακοπή καλύπτει μόνο αυτή την περίπτωση. Οι υπόλοιπες (πτώχευση, θανών επιτηδευματίας από κληρονόμους, μετατροπές, ανάγκη ελέγχου) γίνονται μέσω της εφαρμογής «Τα Αιτήματά μου» της ΑΑΔΕ. Ελέγξτε την επίσημη υπηρεσία.' ),
+						'warn_if' => 'no',
+					),
+				),
+				'steps'     => array(
+					array(
+						'id'        => 'tax_close',
+						'procedure' => '643276',
+						'note'      => self::l( 'File through myAADE with your TAXISnet codes. Declare within 30 days of the actual cessation; a later declaration is treated as late and tax-code penalties apply. You receive a certificate of cessation in your myAADE mailbox.', 'Υποβολή μέσω myAADE με κωδικούς TAXISnet. Δηλώστε εντός 30 ημερών από την πραγματική παύση· αργότερη δήλωση θεωρείται εκπρόθεσμη και ισχύουν οι κυρώσεις του ΚΦΔ. Η βεβαίωση διακοπής εργασιών αποστέλλεται στο γραμματοκιβώτιό σας στο myAADE.' ),
+						'ask_date'  => self::l( 'Date the activity actually stopped', 'Ημερομηνία οριστικής παύσης εργασιών' ),
+						'deadline'  => array( 'days' => 30, 'from' => 'tax_close' ),
+					),
+					array(
+						'id'        => 'efka_end',
+						'procedure' => '861414',
+						'after'     => 'tax_close',
+						'note'      => self::l( 'Possible only after the tax closure. About 3 minutes online; pick the activity codes you closed and enter the closure date. It does not apply if you still carry on another activity that needs e-EFKA insurance.', 'Γίνεται μόνο μετά τη διακοπή στην εφορία. Περίπου 3 λεπτά ηλεκτρονικά· επιλέγετε τους ΚΑΔ που διακόψατε και την ημερομηνία διακοπής. Δεν ισχύει αν ασκείτε άλλη δραστηριότητα που απαιτεί ασφάλιση στον e-ΕΦΚΑ.' ),
+					),
+				),
+			),
+			'change' => array(
+				'title'     => self::l( 'Change business details or activity', 'Μεταβολή στοιχείων ή δραστηριότητας επιχείρησης' ),
+				'intro'     => self::l( 'Tell the tax authority first. If your activity codes changed, update e-EFKA too.', 'Πρώτα ενημερώστε την εφορία. Αν άλλαξαν οι ΚΑΔ, ενημερώστε και τον e-ΕΦΚΑ.' ),
+				'questions' => array(
+					array( 'id' => 'changes_kad', 'label' => self::l( 'Are you adding or removing an activity code (ΚΑΔ)?', 'Προσθέτετε ή αφαιρείτε ΚΑΔ (δραστηριότητα);' ) ),
+				),
+				'steps'     => array(
+					array(
+						'id'        => 'tax_change',
+						'procedure' => '228727',
+						'note'      => self::l( 'Covers a change of registered office or premises, activity codes, VAT regime and more. Online via myAADE (Μητρώο & Επικοινωνία) with TAXISnet codes; some changes need form Δ211 through "Τα Αιτήματά μου". Declare within 30 days of the change. Changes with different effective dates must be declared separately.', 'Καλύπτει αλλαγή έδρας ή εγκατάστασης, ΚΑΔ, καθεστώτος ΦΠΑ κ.ά. Ηλεκτρονικά μέσω myAADE (Μητρώο & Επικοινωνία) με κωδικούς TAXISnet· ορισμένες αλλαγές απαιτούν το έντυπο Δ211 μέσω «Τα Αιτήματά μου». Δηλώστε εντός 30 ημερών από τη μεταβολή. Μεταβολές με διαφορετική ημερομηνία ισχύος δηλώνονται χωριστά.' ),
+						'ask_date'  => self::l( 'Date the change took effect', 'Ημερομηνία ισχύος της μεταβολής' ),
+						'deadline'  => array( 'days' => 30, 'from' => 'tax_change' ),
+					),
+					array(
+						'id'        => 'efka_change',
+						'procedure' => '411584',
+						'after'     => 'tax_change',
+						'show_only' => array( 'changes_kad' => 'yes' ),
+						'note'      => self::l( 'About 1 minute online. To add an activity code you must be up to date with your contributions. The registry gives no filing deadline for this step.', 'Περίπου 1 λεπτό ηλεκτρονικά. Για προσθήκη ΚΑΔ πρέπει να είστε ενήμεροι στις εισφορές σας. Το μητρώο δεν ορίζει προθεσμία για αυτό το βήμα.' ),
 					),
 				),
 			),

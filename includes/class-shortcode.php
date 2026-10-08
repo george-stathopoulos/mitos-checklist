@@ -7,6 +7,12 @@ class Mitoschk_Shortcode {
 	public static function init() {
 		add_shortcode( 'mitos_checklist', array( __CLASS__, 'render' ) );
 		add_shortcode( 'mitos_journey', array( __CLASS__, 'render_journey' ) );
+		add_shortcode( 'mitos_guide', array( __CLASS__, 'render_guide' ) );
+	}
+
+	public static function render_guide() {
+		self::assets();
+		return '<div class="mitoschk" data-guide="1"><p>' . esc_html( Mitoschk_Strings::all()['loading'] ) . '</p></div>';
 	}
 
 	public static function render( $atts ) {

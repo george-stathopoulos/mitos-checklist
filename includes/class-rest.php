@@ -19,11 +19,37 @@ class Mitoschk_Rest {
 			'permission_callback' => '__return_true',
 			'callback'            => array( __CLASS__, 'one' ),
 		) );
+		register_rest_route( 'mitos-checklist/v1', '/search', array(
+			'methods'             => 'GET',
+			'permission_callback' => '__return_true',
+			'callback'            => array( __CLASS__, 'search' ),
+		) );
+		register_rest_route( 'mitos-checklist/v1', '/journeys', array(
+			'methods'             => 'GET',
+			'permission_callback' => '__return_true',
+			'callback'            => array( __CLASS__, 'journeys' ),
+		) );
 		register_rest_route( 'mitos-checklist/v1', '/journeys/(?P<id>[a-z0-9_-]+)', array(
 			'methods'             => 'GET',
 			'permission_callback' => '__return_true',
 			'callback'            => array( __CLASS__, 'journey' ),
 		) );
+	}
+
+	public static function search( WP_REST_Request $req ) {
+		$q = substr( sanitize_text_field( (string) $req->get_param( 'q' ) ), 0, 100 );
+		return rest_ensure_response( array(
+			'indexed' => (bool) Mitoschk_Index::get(),
+			'results' => strlen( $q ) >= 2 ? Mitoschk_Index::search( $q ) : array(),
+		) );
+	}
+
+	public static function journeys() {
+		$out = array();
+		foreach ( Mitoschk_Journeys::all() as $id => $j ) {
+			$out[] = array( 'id' => $id, 'title' => $j['title'], 'intro' => $j['intro'], 'steps' => count( $j['steps'] ) );
+		}
+		return rest_ensure_response( $out );
 	}
 
 	public static function journey( WP_REST_Request $req ) {
@@ -33,10 +59,13 @@ class Mitoschk_Rest {
 		}
 		$data = Mitoschk_Sync::data();
 		foreach ( $j['steps'] as &$step ) {
-			$pid = (string) ( $step['procedure'] ?? '' );
-			$step['available'] = ! empty( $data[ $pid ] );
-			$step['title']     = $step['available'] ? $data[ $pid ]['title'] : '';
-			$step['reviewed']  = self::reviewed( $pid );
+			$pid  = (string) ( $step['procedure'] ?? '' );
+			$rec  = ! empty( $data[ $pid ] ) ? $data[ $pid ] : Mitoschk_Index::live( $pid );
+			$step['available']  = ! is_wp_error( $rec );
+			$step['title']      = $step['available'] ? $rec['title'] : '';
+			$step['apply']      = $step['available'] ? $rec['apply'] : array();
+			$step['source_url'] = 'https://id.mitos.gov.gr/' . rawurlencode( $pid );
+			$step['reviewed']   = self::reviewed( $pid );
 		}
 		unset( $step );
 		return rest_ensure_response( $j );
@@ -85,10 +114,14 @@ class Mitoschk_Rest {
 	public static function one( WP_REST_Request $req ) {
 		$data = Mitoschk_Sync::data();
 		$id   = (string) $req['id'];
-		if ( empty( $data[ $id ] ) ) {
-			return new WP_Error( 'mitoschk_not_found', 'Unknown procedure', array( 'status' => 404 ) );
+		if ( ! empty( $data[ $id ] ) ) {
+			$p = $data[ $id ];
+		} else {
+			$p = Mitoschk_Index::live( $id );
+			if ( is_wp_error( $p ) ) {
+				return $p;
+			}
 		}
-		$p             = $data[ $id ];
 		$p['reviewed'] = self::reviewed( $id );
 		foreach ( $p['documents'] as &$doc ) {
 			$doc['source'] = self::document_source( $doc['title'] . ' ' . $doc['text'], $data );
