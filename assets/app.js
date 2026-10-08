@@ -39,9 +39,12 @@
 
 	function footer( root ) {
 		var f = el( 'p', 'mitoschk-foot' );
-		f.appendChild( document.createTextNode( S.source + ' · ' ) );
-		f.appendChild( link( 'https://creativecommons.org/licenses/by-sa/4.0/', S.licence ) );
+		f.appendChild( document.createTextNode( S.sourceLead + ' ' ) );
+		f.appendChild( link( 'https://mitos.gov.gr', S.sourceName ) );
+		f.appendChild( document.createTextNode( ' · ' ) );
+		f.appendChild( link( 'https://creativecommons.org/licenses/by-sa/4.0/deed.el', S.licence ) );
 		root.appendChild( f );
+		root.appendChild( el( 'p', 'mitoschk-foot', S.adapted ) );
 		root.appendChild( el( 'p', 'mitoschk-foot', S.disclaimer ) );
 	}
 
