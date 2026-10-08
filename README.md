@@ -9,6 +9,8 @@ A WordPress plugin that turns official Greek administrative procedures from the 
 - Tick "Reviewed" after you verify a procedure; visitors then see a review date.
 - Greek or English interface by site language.
 
+**Standalone mode (on by default after activation):** the plugin serves its own designed Greek website (hero, guided journeys, search, how it works, FAQ, credits) instead of the theme. wp-admin, login, REST and cron are untouched. Turn it off in Settings → Mitos Checklist; administrators can view the normal theme with `?mitoschk=theme`. Use it on a dedicated site.
+
 Start page: `[mitos_guide]` offers the guided journeys and a search across all ~4,400 Mitos procedures (a local title index builds itself in the background; single procedures are fetched on demand and cached for 12 hours).
 
 Journeys: start as a sole trader, close a sole trader business, change business details or activity. Each step links to the official service, the Mitos description and the legislation.

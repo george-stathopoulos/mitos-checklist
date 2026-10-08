@@ -34,6 +34,9 @@ class Mitoschk_Admin {
 		}
 		update_option( Mitoschk_Sync::OPT_REVIEW, $reviewed, false );
 
+		update_option( Mitoschk_Site::OPT_ON, ! empty( $_POST['takeover'] ) ? '1' : '0', false );
+		update_option( Mitoschk_Site::OPT_BRAND, sanitize_text_field( wp_unslash( $_POST['brand'] ?? '' ) ), false );
+
 		$msg = 'saved';
 		if ( ! empty( $_POST['index'] ) ) {
 			$msg = Mitoschk_Index::build() ? 'indexed' : 'indexing';
@@ -76,6 +79,15 @@ class Mitoschk_Admin {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="mitoschk_save">
 				<?php wp_nonce_field( 'mitoschk_save' ); ?>
+				<h2>Ιστότοπος (front end)</h2>
+				<p>
+					<label><input type="checkbox" name="takeover" value="1" <?php checked( Mitoschk_Site::enabled() ); ?>>
+					<strong>Εμφάνιση του έτοιμου ελληνικού ιστότοπου στο front end</strong> (αντικαθιστά το θέμα για όλους τους επισκέπτες. Το wp-admin, η σύνδεση και το REST API δεν επηρεάζονται.)</label><br>
+					<span class="description">Κατάλληλο για αφιερωμένο site. Για να δείτε το κανονικό θέμα ως διαχειριστής, προσθέστε <code>?mitoschk=theme</code> στη διεύθυνση.</span>
+				</p>
+				<p><label>Όνομα στην κεφαλίδα: <input type="text" name="brand" value="<?php echo esc_attr( Mitoschk_Site::brand() ); ?>" class="regular-text"></label></p>
+
+				<h2>Διαδικασίες</h2>
 				<textarea name="ids" rows="8" cols="40" class="code"><?php echo esc_textarea( (string) get_option( Mitoschk_Sync::OPT_IDS, '' ) ); ?></textarea>
 
 				<?php if ( $data ) : ?>

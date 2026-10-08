@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Mitos Checklist
- * Description: Turns official Greek administrative procedures from the Mitos registry (mitos.gov.gr) into saveable preparation checklists, embedded with a shortcode.
- * Version: 0.2.0
+ * Description: Serves a ready-made Greek website (when enabled) and turns official Greek administrative procedures from the Mitos registry (mitos.gov.gr) into saveable preparation checklists, embedded with a shortcode.
+ * Version: 0.3.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MITOSCHK_VERSION', '0.2.0' );
+define( 'MITOSCHK_VERSION', '0.3.0' );
 define( 'MITOSCHK_FILE', __FILE__ );
 define( 'MITOSCHK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MITOSCHK_URL', plugin_dir_url( __FILE__ ) );
@@ -24,9 +24,11 @@ require_once MITOSCHK_DIR . 'includes/class-sync.php';
 require_once MITOSCHK_DIR . 'includes/class-index.php';
 require_once MITOSCHK_DIR . 'includes/class-rest.php';
 require_once MITOSCHK_DIR . 'includes/class-shortcode.php';
+require_once MITOSCHK_DIR . 'includes/class-site.php';
 require_once MITOSCHK_DIR . 'includes/class-admin.php';
 
 register_activation_hook( __FILE__, array( 'Mitoschk_Sync', 'schedule' ) );
+register_activation_hook( __FILE__, array( 'Mitoschk_Site', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'Mitoschk_Sync', 'unschedule' ) );
 
 add_action( 'plugins_loaded', function () {
@@ -34,5 +36,6 @@ add_action( 'plugins_loaded', function () {
 	Mitoschk_Index::init();
 	Mitoschk_Rest::init();
 	Mitoschk_Shortcode::init();
+	Mitoschk_Site::init();
 	Mitoschk_Admin::init();
 } );

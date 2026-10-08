@@ -41,7 +41,8 @@
 	function stickyOffsets( root ) {
 		var ab = document.getElementById( 'wpadminbar' );
 		var top = ab && getComputedStyle( ab ).position === 'fixed' ? ab.offsetHeight : 0;
-		root.style.setProperty( '--mitoschk-top', top + 'px' );
+		var site = parseInt( getComputedStyle( root ).getPropertyValue( '--mitoschk-site-top' ), 10 ) || 0;
+		root.style.setProperty( '--mitoschk-top', ( top + site ) + 'px' );
 		var apply = function () {
 			root.style.setProperty( '--mitoschk-bar', ( root.jbar ? root.jbar.offsetHeight : 0 ) + 'px' );
 		};
@@ -403,6 +404,7 @@
 
 	function open( root, id, single ) {
 		root.textContent = S.loading;
+		if ( root._home ) { root.scrollIntoView( { block: 'start' } ); }
 		get( 'procedures/' + id ).then( function ( p ) { detail( root, p, single ); } )
 			.catch( function () { root.textContent = S.error; } );
 	}
@@ -493,14 +495,20 @@
 		footer( root );
 	}
 
+	function toTop( root ) {
+		if ( root._home && root.scrollIntoView ) { root.scrollIntoView( { block: 'start' } ); }
+	}
+
 	function openJourney( root, id ) {
 		root.textContent = S.loading;
+		toTop( root );
 		get( 'journeys/' + id ).then( function ( j ) { journey( root, j, id ); } )
 			.catch( function () { root.textContent = S.error; } );
 	}
 
 	function route( root ) {
 		var h = location.hash;
+		if ( h && ! /^#(mitos-\d+|journey-[a-z0-9_-]+)$/.test( h ) ) { return; } // page anchors such as #faq
 		var m = /^#mitos-(\d+)$/.exec( h );
 		var j = /^#journey-([a-z0-9_-]+)$/.exec( h );
 		if ( m ) { open( root, m[ 1 ], false ); } else if ( j ) { openJourney( root, j[ 1 ] ); } else { guide( root ); }
