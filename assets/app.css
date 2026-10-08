@@ -27,3 +27,12 @@
 .mitoschk-btn { display: inline-block; background: #2271b1; color: #fff !important; padding: .6em 1.1em; border-radius: 6px; text-decoration: none; }
 .mitoschk-foot { font-size: .8em; color: #50575e; margin: 1.5em 0 0; }
 @media print { .mitoschk-back, .mitoschk-print, .mitoschk-search, .mitoschk-go { display: none; } }
+.mitoschk-q fieldset { border: 1px solid #dcdcde; border-radius: 8px; margin: .6em 0; padding: .6em 1em; }
+.mitoschk-opt { margin-right: 1.2em; }
+.mitoschk-warn { background: #fcf0f1; color: #8a1f2b; border-radius: 6px; padding: .6em .8em; }
+.mitoschk-deadline { background: #fff8e5; border-radius: 6px; padding: .6em .8em; font-weight: 600; }
+.mitoschk-steps { list-style: none; padding: 0; counter-reset: s; }
+.mitoschk-step { border: 1px solid #dcdcde; border-radius: 8px; padding: .8em 1em; margin: .8em 0; }
+.mitoschk-step.is-done { background: #f0f7f1; }
+.mitoschk-date { display: block; margin: .5em 0; }
+.mitoschk-inline { margin-top: .6em; border-top: 1px dashed #dcdcde; padding-top: .4em; }

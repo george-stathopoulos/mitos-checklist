@@ -19,6 +19,7 @@ define( 'MITOSCHK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MITOSCHK_URL', plugin_dir_url( __FILE__ ) );
 
 require_once MITOSCHK_DIR . 'includes/class-strings.php';
+require_once MITOSCHK_DIR . 'includes/class-journeys.php';
 require_once MITOSCHK_DIR . 'includes/class-sync.php';
 require_once MITOSCHK_DIR . 'includes/class-rest.php';
 require_once MITOSCHK_DIR . 'includes/class-shortcode.php';

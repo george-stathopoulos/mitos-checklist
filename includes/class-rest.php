@@ -19,6 +19,27 @@ class Mitoschk_Rest {
 			'permission_callback' => '__return_true',
 			'callback'            => array( __CLASS__, 'one' ),
 		) );
+		register_rest_route( 'mitos-checklist/v1', '/journeys/(?P<id>[a-z0-9_-]+)', array(
+			'methods'             => 'GET',
+			'permission_callback' => '__return_true',
+			'callback'            => array( __CLASS__, 'journey' ),
+		) );
+	}
+
+	public static function journey( WP_REST_Request $req ) {
+		$j = Mitoschk_Journeys::get( (string) $req['id'] );
+		if ( ! $j ) {
+			return new WP_Error( 'mitoschk_not_found', 'Unknown journey', array( 'status' => 404 ) );
+		}
+		$data = Mitoschk_Sync::data();
+		foreach ( $j['steps'] as &$step ) {
+			$pid = (string) ( $step['procedure'] ?? '' );
+			$step['available'] = ! empty( $data[ $pid ] );
+			$step['title']     = $step['available'] ? $data[ $pid ]['title'] : '';
+			$step['reviewed']  = self::reviewed( $pid );
+		}
+		unset( $step );
+		return rest_ensure_response( $j );
 	}
 
 	private static function reviewed( $id ) {

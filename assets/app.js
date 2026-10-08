@@ -55,7 +55,7 @@
 		root.appendChild( sec );
 	}
 
-	function detail( root, p, single ) {
+	function detail( root, p, single, compact ) {
 		root.textContent = '';
 		var state = load( p.id );
 		state.done = state.done || {};
@@ -66,9 +66,11 @@
 			back.onclick = function () { history.pushState( null, '', location.pathname + location.search ); list( root ); };
 			root.appendChild( back );
 		}
-		root.appendChild( el( 'h2', null, p.title ) );
-		if ( p.owner ) { root.appendChild( el( 'p', 'mitoschk-owner', p.owner ) ); }
-		if ( p.description ) { root.appendChild( el( 'p', null, p.description ) ); }
+		if ( ! compact ) {
+			root.appendChild( el( 'h2', null, p.title ) );
+			if ( p.owner ) { root.appendChild( el( 'p', 'mitoschk-owner', p.owner ) ); }
+			if ( p.description ) { root.appendChild( el( 'p', null, p.description ) ); }
+		}
 
 		var trust = el( 'p', 'mitoschk-trust' );
 		if ( p.reviewed ) { trust.appendChild( el( 'span', 'mitoschk-badge', fmt( S.reviewed, date( p.reviewed ) ) ) ); }
@@ -169,8 +171,149 @@
 		pr.onclick = function () { window.print(); };
 		root.appendChild( pr );
 
-		footer( root );
+		if ( ! compact ) { footer( root ); }
 		refresh();
+	}
+
+	/* ---------- journeys ---------- */
+
+	function deadlineFor( step, startISO ) {
+		if ( ! step.deadline || ! startISO ) { return null; }
+		var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec( startISO );
+		if ( ! m ) { return null; }
+		return new Date( Date.UTC( +m[ 1 ], ( +m[ 2 ] - 1 ) + step.deadline.month_offset, step.deadline.day ) );
+	}
+	function dayText( d ) {
+		return d.toLocaleDateString( cfg.dateFmt || 'en-GB', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' } );
+	}
+	function ics( title, d ) {
+		function p2( n ) { return ( n < 10 ? '0' : '' ) + n; }
+		var ymd = function ( x ) { return x.getUTCFullYear() + p2( x.getUTCMonth() + 1 ) + p2( x.getUTCDate() ); };
+		var next = new Date( d.getTime() + 86400000 );
+		var lines = [ 'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mitos Checklist//EN', 'BEGIN:VEVENT',
+			'UID:' + ymd( d ) + '-' + Math.random().toString( 36 ).slice( 2 ) + '@mitos-checklist',
+			'DTSTAMP:' + new Date().toISOString().replace( /[-:]/g, '' ).replace( /\.\d+/, '' ),
+			'DTSTART;VALUE=DATE:' + ymd( d ), 'DTEND;VALUE=DATE:' + ymd( next ),
+			'SUMMARY:' + title.replace( /[,;\n]/g, ' ' ),
+			'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + title.replace( /[,;\n]/g, ' ' ), 'TRIGGER:-P3D', 'END:VALARM',
+			'END:VEVENT', 'END:VCALENDAR' ];
+		var a = el( 'a', 'mitoschk-btn' );
+		a.textContent = S.remind;
+		a.href = URL.createObjectURL( new Blob( [ lines.join( '\r\n' ) ], { type: 'text/calendar' } ) );
+		a.download = 'reminder.ics';
+		return a;
+	}
+
+	function journey( root, j, jid ) {
+		root.textContent = '';
+		var key = 'journey-' + jid;
+		var st = load( key );
+		st.answers = st.answers || {};
+		st.done = st.done || {};
+		st.dates = st.dates || {};
+		function persist() { save( key, st ); }
+
+		root.appendChild( el( 'h2', null, j.title ) );
+		root.appendChild( el( 'p', null, j.intro ) );
+
+		var qbox = el( 'div', 'mitoschk-q' );
+		( j.questions || [] ).forEach( function ( q ) {
+			var f = el( 'fieldset' );
+			f.appendChild( el( 'legend', null, q.label ) );
+			[ 'yes', 'no' ].forEach( function ( v ) {
+				var lab = el( 'label', 'mitoschk-opt' );
+				var r = el( 'input' );
+				r.type = 'radio'; r.name = key + '-' + q.id; r.value = v;
+				r.checked = st.answers[ q.id ] === v;
+				r.onchange = function () { st.answers[ q.id ] = v; persist(); journey( root, j, jid ); };
+				lab.appendChild( r );
+				lab.appendChild( document.createTextNode( ' ' + S[ v ] ) );
+				f.appendChild( lab );
+			} );
+			if ( q.warn && st.answers[ q.id ] === q.warn_if ) { f.appendChild( el( 'p', 'mitoschk-warn', q.warn ) ); }
+			qbox.appendChild( f );
+		} );
+		root.appendChild( qbox );
+
+		var prog = el( 'p', 'mitoschk-msg' );
+		var track = el( 'div', 'mitoschk-track' );
+		var fill = el( 'div', 'mitoschk-fill' );
+		track.appendChild( fill );
+		root.appendChild( prog ); root.appendChild( track );
+		var list = el( 'ol', 'mitoschk-steps' );
+		root.appendChild( list );
+
+		var reset = el( 'button', 'mitoschk-print', S.startOver );
+		reset.type = 'button';
+		reset.onclick = function () { st.answers = {}; st.done = {}; st.dates = {}; persist(); journey( root, j, jid ); };
+		root.appendChild( reset );
+		footer( root );
+
+		function draw() {
+			// Re-render the question warnings by redrawing the whole journey view only on answer change.
+			var steps = ( j.steps || [] ).filter( function ( s ) {
+				var cond = s.show_if || {};
+				return Object.keys( cond ).every( function ( k ) { return st.answers[ k ] !== 'yes' || cond[ k ] !== 'no'; } );
+			} );
+			var done = steps.filter( function ( s ) { return st.done[ s.id ]; } ).length;
+			prog.textContent = fmt( S.stepsDone, done, steps.length );
+			fill.style.width = steps.length ? Math.round( done / steps.length * 100 ) + '%' : '0';
+			list.textContent = '';
+			steps.forEach( function ( s, i ) {
+				var li = el( 'li', 'mitoschk-step' + ( st.done[ s.id ] ? ' is-done' : '' ) );
+				var head = el( 'label', 'mitoschk-stephead' );
+				var cb = el( 'input' );
+				cb.type = 'checkbox'; cb.checked = !! st.done[ s.id ];
+				cb.onchange = function () { if ( cb.checked ) { st.done[ s.id ] = 1; } else { delete st.done[ s.id ]; } persist(); draw(); };
+				head.appendChild( cb );
+				head.appendChild( el( 'strong', null, ' ' + ( i + 1 ) + '. ' + ( s.title || s.procedure ) ) );
+				if ( s.reviewed ) { head.appendChild( el( 'span', 'mitoschk-badge', '✓' ) ); }
+				li.appendChild( head );
+				if ( s.note ) { li.appendChild( el( 'p', null, s.note ) ); }
+				if ( s.after && ! st.done[ s.after ] ) { li.appendChild( el( 'p', 'mitoschk-small', S.waitFor ) ); }
+
+				if ( s.ask_date ) {
+					var dl = el( 'label', 'mitoschk-date', s.ask_date + ': ' );
+					var di = el( 'input' );
+					di.type = 'date'; di.value = st.dates[ s.id ] || '';
+					di.onchange = function () { st.dates[ s.id ] = di.value; persist(); draw(); };
+					dl.appendChild( di );
+					li.appendChild( dl );
+				}
+				if ( s.deadline ) {
+					var d = deadlineFor( s, st.dates[ s.deadline.from ] );
+					if ( d ) {
+						var past = d.getTime() < Date.now() - 86400000;
+						li.appendChild( el( 'p', past ? 'mitoschk-warn' : 'mitoschk-deadline', past ? fmt( S.deadlinePast, dayText( d ) ) : fmt( S.deadline, dayText( d ) ) ) );
+						if ( ! past ) { li.appendChild( ics( fmt( S.remindTitle, s.title || '' ), d ) ); }
+					}
+				}
+
+				if ( s.available ) {
+					var box = el( 'div', 'mitoschk-inline' );
+					box.hidden = true;
+					var tg = el( 'button', 'mitoschk-back', S.openList );
+					tg.type = 'button';
+					var loaded = false;
+					tg.onclick = function () {
+						box.hidden = ! box.hidden;
+						tg.textContent = box.hidden ? S.openList : S.hideList;
+						if ( ! box.hidden && ! loaded ) {
+							loaded = true;
+							box.textContent = S.loading;
+							get( 'procedures/' + s.procedure ).then( function ( p ) { detail( box, p, true, true ); } )
+								.catch( function () { box.textContent = S.error; } );
+						}
+					};
+					li.appendChild( tg );
+					li.appendChild( box );
+				} else {
+					li.appendChild( el( 'p', 'mitoschk-small', S.unavailable ) );
+				}
+				list.appendChild( li );
+			} );
+		}
+		draw();
 	}
 
 	function open( root, id, single ) {
@@ -213,6 +356,12 @@
 	}
 
 	function start( root ) {
+		var jid = root.getAttribute( 'data-journey' );
+		if ( jid ) {
+			get( 'journeys/' + jid ).then( function ( j ) { journey( root, j, jid ); } )
+				.catch( function () { root.textContent = S.error; } );
+			return;
+		}
 		var fixed = root.getAttribute( 'data-id' );
 		if ( fixed ) { open( root, fixed, true ); return; }
 		var m = /^#mitos-(\d+)$/.exec( location.hash );

@@ -32,7 +32,8 @@ class Mitoschk_Sync {
 	public static function ids() {
 		$raw = (string) get_option( self::OPT_IDS, '' );
 		preg_match_all( '/\d{3,}/', $raw, $m );
-		return array_slice( array_values( array_unique( $m[0] ) ), 0, self::MAX_IDS );
+		$ids = array_merge( $m[0], Mitoschk_Journeys::procedure_ids() );
+		return array_slice( array_values( array_unique( $ids ) ), 0, self::MAX_IDS );
 	}
 
 	public static function data() {
