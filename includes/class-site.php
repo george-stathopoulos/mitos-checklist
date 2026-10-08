@@ -74,6 +74,7 @@ class Mitoschk_Site {
 <meta property="og:title" content="<?php echo esc_attr( $brand ); ?>">
 <meta property="og:description" content="<?php echo esc_attr( $desc ); ?>">
 <meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cdefs%3E%3CclipPath id='r'%3E%3Crect width='36' height='36' rx='10'/%3E%3C/clipPath%3E%3C/defs%3E%3Cg clip-path='url(%23r)'%3E%3Crect width='36' height='36' fill='%23fff'/%3E%3Cg fill='%230d5eaf'%3E%3Crect y='0' width='36' height='4'/%3E%3Crect y='8' width='36' height='4'/%3E%3Crect y='16' width='36' height='4'/%3E%3Crect y='24' width='36' height='4'/%3E%3Crect y='32' width='36' height='4'/%3E%3Crect width='20' height='20'/%3E%3C/g%3E%3Cg fill='%23fff'%3E%3Crect x='8' width='4' height='20'/%3E%3Crect y='8' width='20' height='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="<?php echo esc_url( MITOSCHK_URL . 'assets/app.css?ver=' . $ver ); ?>">
 <link rel="stylesheet" href="<?php echo esc_url( MITOSCHK_URL . 'assets/site.css?ver=' . $ver ); ?>">
 </head>
@@ -82,7 +83,7 @@ class Mitoschk_Site {
 
 <header class="mc-header">
 	<div class="mc-wrap mc-header-in">
-		<a class="mc-brand" href="<?php echo esc_url( home_url( '/' ) ); ?>"><span class="mc-logo" aria-hidden="true">Μ</span><span><?php echo esc_html( $brand ); ?></span></a>
+		<a class="mc-brand" href="<?php echo esc_url( home_url( '/' ) ); ?>"><svg class="mc-logo-svg" viewBox="0 0 36 36" width="36" height="36" aria-hidden="true" focusable="false"><defs><clipPath id="mcr"><rect width="36" height="36" rx="10"/></clipPath></defs><g clip-path="url(#mcr)"><rect width="36" height="36" fill="#fff"/><g fill="#0d5eaf"><rect y="0" width="36" height="4"/><rect y="8" width="36" height="4"/><rect y="16" width="36" height="4"/><rect y="24" width="36" height="4"/><rect y="32" width="36" height="4"/><rect width="20" height="20"/></g><g fill="#fff"><rect x="8" y="0" width="4" height="20"/><rect x="0" y="8" width="20" height="4"/></g></g></svg><span><?php echo esc_html( $brand ); ?></span></a>
 		<nav class="mc-nav" aria-label="Κύριο μενού">
 			<a href="#app">Οδηγοί</a>
 			<a href="#how">Πώς λειτουργεί</a>
@@ -97,7 +98,10 @@ class Mitoschk_Site {
 		<div class="mc-wrap">
 			<p class="mc-eyebrow">Για ελεύθερους επαγγελματίες και μικρές επιχειρήσεις</p>
 			<h1>Η γραφειοκρατία, <span>βήμα βήμα</span></h1>
-			<p class="mc-lead">Δείτε τι χρειάζεστε, με ποια σειρά και μέχρι πότε. Ετοιμάστε τα δικαιολογητικά σας με επίσημα στοιχεία από το Εθνικό Μητρώο Διοικητικών Διαδικασιών (Μίτος).</p>
+			<p class="mc-rotor-line" aria-label="Δείτε τι χρειάζεστε, με ποια σειρά και μέχρι πότε.">
+				<span aria-hidden="true">Δείτε </span><span class="mc-rotor" aria-hidden="true" data-words='["τι χρειάζεστε","με ποια σειρά","μέχρι πότε","πού να πάτε","από επίσημη πηγή"]'>τι χρειάζεστε</span>
+			</p>
+			<p class="mc-lead">Ετοιμάστε τα δικαιολογητικά σας για έναρξη, μεταβολή ή διακοπή επιχείρησης, με επίσημα στοιχεία από το Εθνικό Μητρώο Διοικητικών Διαδικασιών (Μίτος).</p>
 			<div class="mc-cta">
 				<a class="mc-btn mc-btn-primary" href="#app">Ξεκινήστε τώρα</a>
 				<a class="mc-btn" href="#how">Πώς λειτουργεί</a>
@@ -109,6 +113,8 @@ class Mitoschk_Site {
 			</ul>
 		</div>
 	</section>
+
+	<div class="mc-meander" aria-hidden="true"></div>
 
 	<section class="mc-section mc-app" id="app">
 		<div class="mc-wrap mc-app-in">
@@ -151,6 +157,7 @@ class Mitoschk_Site {
 	</section>
 </main>
 
+<div class="mc-meander mc-meander-dark" aria-hidden="true"></div>
 <footer class="mc-footer">
 	<div class="mc-wrap">
 		<p><strong><?php echo esc_html( $brand ); ?></strong> · Ανεξάρτητη υπηρεσία, χωρίς σύνδεση με το Ελληνικό Δημόσιο. Μόνο ενημερωτική χρήση: επιβεβαιώστε πάντα στην επίσημη υπηρεσία πριν υποβάλετε αίτηση.</p>
@@ -160,6 +167,18 @@ class Mitoschk_Site {
 </footer>
 
 <script>window.MitosChecklist = <?php echo wp_json_encode( $boot ); ?>;</script>
+<script>
+(function () {
+	var r = document.querySelector('.mc-rotor');
+	if (!r || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+	var words; try { words = JSON.parse(r.getAttribute('data-words')); } catch (e) { return; }
+	var i = 0;
+	setInterval(function () {
+		r.classList.add('is-out');
+		setTimeout(function () { i = (i + 1) % words.length; r.textContent = words[i]; r.classList.remove('is-out'); }, 380);
+	}, 2600);
+}());
+</script>
 <script src="<?php echo esc_url( MITOSCHK_URL . 'assets/app.js?ver=' . $ver ); ?>" defer></script>
 </body>
 </html>

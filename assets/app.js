@@ -231,9 +231,17 @@
 		notes.appendChild( ta );
 		root.appendChild( notes );
 
-		var pr = el( 'button', 'mitoschk-print', S.print );
+		var pr = el( 'button', 'mitoschk-print', S.exportPdf );
 		pr.type = 'button';
-		pr.onclick = function () { window.print(); };
+		pr.onclick = function () {
+			var out = el( 'div', 'mx' );
+			out.appendChild( el( 'h1', null, p.title ) );
+			out.appendChild( el( 'p', 'mx-meta', fmt( S.preparedOn, new Date().toLocaleDateString( cfg.dateFmt || 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' } ) ) ) );
+			if ( p.description ) { out.appendChild( el( 'p', null, p.description ) ); }
+			exportProcedureBlock( out, p );
+			exportFooter( out );
+			runPrint( out, S.exportName + ' – ' + p.title );
+		};
 		root.appendChild( pr );
 
 		if ( ! compact ) { footer( root ); }
@@ -268,6 +276,117 @@
 		a.href = URL.createObjectURL( new Blob( [ lines.join( '\r\n' ) ], { type: 'text/calendar' } ) );
 		a.download = 'reminder.ics';
 		return a;
+	}
+
+	function visibleSteps( j, st ) {
+		return ( j.steps || [] ).filter( function ( s ) {
+			var cond = s.show_if || {};
+			var only = s.show_only || {};
+			return Object.keys( cond ).every( function ( k ) { return st.answers[ k ] !== 'yes' || cond[ k ] !== 'no'; } ) &&
+				Object.keys( only ).every( function ( k ) { return st.answers[ k ] === only[ k ]; } );
+		} );
+	}
+
+	/* ---------- PDF export (print layout; the browser saves it as PDF) ---------- */
+
+	function box( done ) { return done ? '☑ ' : '☐ '; }
+	function urlLine( ul, title, url ) {
+		var li = el( 'li' );
+		li.appendChild( document.createTextNode( ( title ? title + ': ' : '' ) + url ) );
+		ul.appendChild( li );
+	}
+
+	function exportProcedureBlock( out, p, stepState ) {
+		var ps = load( p.id );
+		ps.done = ps.done || {};
+		var docs = p.documents || [];
+		if ( docs.length ) {
+			out.appendChild( el( 'h4', null, S.documents ) );
+			var ul = el( 'ul', 'mx-list' );
+			docs.forEach( function ( d, i ) {
+				var li = el( 'li', null, box( ps.done[ 'd' + ( d.key || i + 1 ) ] ) + ( d.title || '' ) + ( d.text ? ' – ' + d.text : '' ) );
+				ul.appendChild( li );
+			} );
+			out.appendChild( ul );
+		}
+		if ( ( p.conditions || [] ).length ) {
+			out.appendChild( el( 'h4', null, S.conditions ) );
+			var cu = el( 'ul', 'mx-list' );
+			p.conditions.forEach( function ( c, i ) {
+				cu.appendChild( el( 'li', null, box( ps.done[ 'c' + i ] ) + ( c.type ? c.type + ': ' : '' ) + c.text ) );
+			} );
+			out.appendChild( cu );
+		}
+		if ( ( p.fees || [] ).length ) {
+			out.appendChild( el( 'h4', null, S.fees ) );
+			var fu = el( 'ul', 'mx-list' );
+			p.fees.forEach( function ( f ) { fu.appendChild( el( 'li', null, f.type + ( f.text ? ' – ' + f.text : '' ) ) ); } );
+			out.appendChild( fu );
+		}
+		var links = el( 'ul', 'mx-links' );
+		( p.apply || [] ).forEach( function ( a ) { urlLine( links, S.apply, a.url ); } );
+		urlLine( links, S.officialDesc, p.source_url );
+		( p.legislation || [] ).forEach( function ( l ) { urlLine( links, l.title, l.url ); } );
+		out.appendChild( el( 'h4', null, S.links ) );
+		out.appendChild( links );
+		if ( ps.notes ) {
+			out.appendChild( el( 'h4', null, S.notesShort ) );
+			out.appendChild( el( 'p', 'mx-notes', ps.notes ) );
+		}
+	}
+
+	function runPrint( node, title ) {
+		var old = document.title;
+		node.id = 'mitoschk-export';
+		document.body.appendChild( node );
+		document.body.classList.add( 'mitoschk-printing' );
+		document.title = title;
+		var cleanup = function () {
+			document.body.classList.remove( 'mitoschk-printing' );
+			document.title = old;
+			node.remove();
+			window.removeEventListener( 'afterprint', cleanup );
+		};
+		window.addEventListener( 'afterprint', cleanup );
+		setTimeout( function () { window.print(); }, 50 );
+	}
+
+	function exportFooter( out ) {
+		out.appendChild( el( 'p', 'mx-foot', S.sourceLead + ' ' + S.sourceName + ' · mitos.gov.gr · ' + S.licence + ' (creativecommons.org/licenses/by-sa/4.0). ' + S.adapted ) );
+		out.appendChild( el( 'p', 'mx-foot', S.disclaimer ) );
+	}
+
+	function exportJourney( j, jid, st ) {
+		var steps = visibleSteps( j, st );
+		return Promise.all( steps.map( function ( s ) {
+			return get( 'procedures/' + s.procedure ).catch( function () { return null; } );
+		} ) ).then( function ( procs ) {
+			var out = el( 'div', 'mx' );
+			out.appendChild( el( 'h1', null, j.title ) );
+			out.appendChild( el( 'p', 'mx-meta', fmt( S.preparedOn, new Date().toLocaleDateString( cfg.dateFmt || 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' } ) ) ) );
+			var answered = ( j.questions || [] ).filter( function ( q ) { return st.answers[ q.id ]; } );
+			if ( answered.length ) {
+				var au = el( 'ul', 'mx-list' );
+				answered.forEach( function ( q ) { au.appendChild( el( 'li', null, q.label + ' → ' + S[ st.answers[ q.id ] ] ) ); } );
+				out.appendChild( au );
+			}
+			steps.forEach( function ( s, i ) {
+				var sec = el( 'section', 'mx-step' );
+				sec.appendChild( el( 'h2', null, box( st.done[ s.id ] ) + ( i + 1 ) + '. ' + ( s.title || s.procedure ) ) );
+				if ( s.note ) { sec.appendChild( el( 'p', null, s.note ) ); }
+				if ( s.ask_date && st.dates[ s.id ] ) { sec.appendChild( el( 'p', 'mx-meta', s.ask_date + ': ' + dayText( new Date( st.dates[ s.id ] + 'T00:00:00Z' ) ) ) ); }
+				if ( s.deadline ) {
+					var d = deadlineFor( s, st.dates[ s.deadline.from ] );
+					if ( d ) { sec.appendChild( el( 'p', 'mx-deadline', fmt( S.deadline, dayText( d ) ) ) ); }
+				}
+				if ( procs[ i ] ) { exportProcedureBlock( sec, procs[ i ] ); }
+				else { var l = el( 'ul', 'mx-links' ); urlLine( l, S.officialDesc, s.source_url ); sec.appendChild( l ); }
+				( s.links || [] ).forEach( function ( x ) { var u = el( 'ul', 'mx-links' ); urlLine( u, x.title, x.url ); sec.appendChild( u ); } );
+				out.appendChild( sec );
+			} );
+			exportFooter( out );
+			return out;
+		} );
 	}
 
 	function journey( root, j, jid ) {
@@ -331,17 +450,19 @@
 			window.scrollTo( 0, root.getBoundingClientRect().top + window.pageYOffset - 20 );
 			journey( root, j, jid );
 		};
+		var exp = el( 'button', 'mitoschk-btn mitoschk-export', S.exportPdf );
+		exp.type = 'button';
+		exp.onclick = function () {
+			exp.disabled = true;
+			exportJourney( j, jid, st ).then( function ( node ) { exp.disabled = false; runPrint( node, S.exportName + ' – ' + j.title ); } );
+		};
+		root.insertBefore( exp, jbar.nextSibling );
 		root.appendChild( reset );
 		footer( root );
 
 		function draw() {
 			// Re-render the question warnings by redrawing the whole journey view only on answer change.
-			var steps = ( j.steps || [] ).filter( function ( s ) {
-				var cond = s.show_if || {};
-				var only = s.show_only || {};
-				return Object.keys( cond ).every( function ( k ) { return st.answers[ k ] !== 'yes' || cond[ k ] !== 'no'; } ) &&
-					Object.keys( only ).every( function ( k ) { return st.answers[ k ] === only[ k ]; } );
-			} );
+			var steps = visibleSteps( j, st );
 			var done = steps.filter( function ( s ) { return st.done[ s.id ]; } ).length;
 			prog.textContent = fmt( S.stepsDone, done, steps.length );
 			fill.style.width = steps.length ? Math.round( done / steps.length * 100 ) + '%' : '0';

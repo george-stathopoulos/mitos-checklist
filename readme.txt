@@ -20,6 +20,9 @@ Procedure content comes from the Mitos API and is licensed CC BY-SA 4.0. Informa
 
 == Changelog ==
 
+= 0.4.0 =
+Download any guide or procedure as a PDF (print layout with your ticks, dates, links and legislation), a button to delete all saved data on the device, flag logo and meander motif, animated headline.
+
 = 0.3.1 =
 The Greek website is now on by default even when upgrading an already-active plugin (no activation step runs then). Admin notice shows whether it is on, with a link to the site.
 

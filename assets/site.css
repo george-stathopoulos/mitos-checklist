@@ -65,3 +65,12 @@ details p { margin: .6em 0 0; color: var(--mc-muted); }
 
 @media (max-width: 640px) { .mc-nav { display: none; } body.mc-site { font-size: 16px; } }
 @media print { .mc-header, .mc-hero, .mc-section:not(.mc-app), .mc-footer { display: none; } .mc-app-in { border: 0; box-shadow: none; padding: 0; } }
+
+/* Greek identity */
+.mc-logo-svg { display: block; border-radius: 10px; box-shadow: 0 1px 3px rgba(13, 94, 175, .35); }
+.mc-meander { height: 16px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M0 14H2V2H18V10H8V6H13M18 10V14H32' fill='none' stroke='%230d5eaf' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") repeat-x center; opacity: .55; margin: 8px 0; }
+.mc-meander-dark { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M0 14H2V2H18V10H8V6H13M18 10V14H32' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linejoin='miter'/%3E%3C/svg%3E") repeat-x center; opacity: .5; margin: 0; background-color: #0e1a33; }
+.mc-rotor-line { font-size: clamp(1.15rem, 3vw, 1.5rem); font-weight: 600; margin: 0 0 .8em; color: var(--mc-ink); }
+.mc-rotor { display: inline-block; color: var(--mc-accent); transition: opacity .35s ease, transform .35s ease; border-bottom: 3px solid #bcd7f3; }
+.mc-rotor.is-out { opacity: 0; transform: translateY(8px); }
+@media (prefers-reduced-motion: reduce) { .mc-rotor { transition: none; } }
