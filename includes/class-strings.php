@@ -49,6 +49,7 @@ class Mitoschk_Strings {
 			'unavailable' => array( 'The details could not be loaded right now. Use the official description linked here.', 'Οι λεπτομέρειες δεν φορτώθηκαν αυτή τη στιγμή. Χρησιμοποιήστε την επίσημη περιγραφή στον σύνδεσμο.' ),
 			'officialDesc'=> array( 'Official description on Mitos', 'Επίσημη περιγραφή στον Μίτο' ),
 			'legislation' => array( 'Legislation', 'Νομοθεσία' ),
+			'confirmReset'=> array( 'Clear all your answers, ticks, dates and notes for this guide on this device?', 'Να διαγραφούν όλες οι απαντήσεις, τα τικ, οι ημερομηνίες και οι σημειώσεις σας για αυτόν τον οδηγό σε αυτή τη συσκευή;' ),
 			'startOver'   => array( 'Start over', 'Ξεκίνημα από την αρχή' ),
 			'changed'     => array( 'This procedure was updated on %s, after you last viewed it. Re-check the details below.', 'Η διαδικασία ενημερώθηκε στις %s, μετά την τελευταία φορά που την είδατε. Ελέγξτε ξανά τις λεπτομέρειες.' ),
 			'gotIt'       => array( 'Got it', 'Το είδα' ),

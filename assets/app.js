@@ -37,6 +37,19 @@
 		try { localStorage.setItem( 'mitoschk:' + id, JSON.stringify( state ) ); } catch ( e ) {}
 	}
 
+	/* Keep sticky bars below the WordPress admin bar and stack the document bar under the journey bar. */
+	function stickyOffsets( root ) {
+		var ab = document.getElementById( 'wpadminbar' );
+		var top = ab && getComputedStyle( ab ).position === 'fixed' ? ab.offsetHeight : 0;
+		root.style.setProperty( '--mitoschk-top', top + 'px' );
+		var apply = function () {
+			root.style.setProperty( '--mitoschk-bar', ( root.jbar ? root.jbar.offsetHeight : 0 ) + 'px' );
+		};
+		apply();
+		window.addEventListener( 'resize', apply );
+		setTimeout( apply, 300 );
+	}
+
 	function footer( root ) {
 		var f = el( 'p', 'mitoschk-foot' );
 		f.appendChild( document.createTextNode( S.sourceLead + ' ' ) );
@@ -99,8 +112,10 @@
 		var track = el( 'div', 'mitoschk-track' );
 		var fill = el( 'div', 'mitoschk-fill' );
 		track.appendChild( fill );
-		bar.appendChild( msg ); bar.appendChild( track ); bar.appendChild( rem );
+		bar.appendChild( msg ); bar.appendChild( track );
 		root.appendChild( bar );
+		root.appendChild( rem );
+		stickyOffsets( root );
 
 		function refresh() {
 			var docs = p.documents || [];
@@ -273,17 +288,30 @@
 		} );
 		root.appendChild( qbox );
 
+		var jbar = el( 'div', 'mitoschk-progress mitoschk-jbar' );
 		var prog = el( 'p', 'mitoschk-msg' );
 		var track = el( 'div', 'mitoschk-track' );
 		var fill = el( 'div', 'mitoschk-fill' );
 		track.appendChild( fill );
-		root.appendChild( prog ); root.appendChild( track );
+		jbar.appendChild( prog ); jbar.appendChild( track );
+		root.appendChild( jbar );
+		root.jbar = jbar;
+		stickyOffsets( root );
+		var openSteps = {};
 		var list = el( 'ol', 'mitoschk-steps' );
 		root.appendChild( list );
 
 		var reset = el( 'button', 'mitoschk-print', S.startOver );
 		reset.type = 'button';
-		reset.onclick = function () { st.answers = {}; st.done = {}; st.dates = {}; persist(); journey( root, j, jid ); };
+		reset.onclick = function () {
+			if ( ! window.confirm( S.confirmReset ) ) { return; }
+			try {
+				localStorage.removeItem( 'mitoschk:' + key );
+				( j.steps || [] ).forEach( function ( s ) { localStorage.removeItem( 'mitoschk:' + s.procedure ); } );
+			} catch ( e ) {}
+			window.scrollTo( 0, root.getBoundingClientRect().top + window.pageYOffset - 20 );
+			journey( root, j, jid );
+		};
 		root.appendChild( reset );
 		footer( root );
 
@@ -346,20 +374,22 @@
 
 				if ( s.available ) {
 					var box = el( 'div', 'mitoschk-inline' );
-					box.hidden = true;
-					var tg = el( 'button', 'mitoschk-back', S.openList );
+					var tg = el( 'button', 'mitoschk-back' );
 					tg.type = 'button';
 					var loaded = false;
-					tg.onclick = function () {
-						box.hidden = ! box.hidden;
-						tg.textContent = box.hidden ? S.openList : S.hideList;
-						if ( ! box.hidden && ! loaded ) {
+					var show = function ( on ) {
+						openSteps[ s.id ] = on;
+						box.hidden = ! on;
+						tg.textContent = on ? S.hideList : S.openList;
+						if ( on && ! loaded ) {
 							loaded = true;
 							box.textContent = S.loading;
 							get( 'procedures/' + s.procedure ).then( function ( p ) { detail( box, p, true, true ); } )
 								.catch( function () { box.textContent = S.error; } );
 						}
 					};
+					tg.onclick = function () { show( box.hidden ); };
+					show( !! openSteps[ s.id ] );
 					li.appendChild( tg );
 					li.appendChild( box );
 				} else {

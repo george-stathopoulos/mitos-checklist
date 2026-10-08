@@ -41,3 +41,8 @@
 .mitoschk h3 { margin-top: 1.6em; }
 .mitoschk-links { margin: .6em 0 0; font-size: .9em; }
 .mitoschk-links li { margin: .2em 0; }
+/* Progress stays visible while scrolling. */
+.mitoschk-progress { position: sticky; top: var(--mitoschk-top, 0px); z-index: 30; box-shadow: 0 2px 6px rgba(0, 0, 0, .12); }
+.mitoschk-jbar { padding: .6em 1em; margin: 1em 0 .6em; }
+.mitoschk-inline .mitoschk-progress { top: calc(var(--mitoschk-top, 0px) + var(--mitoschk-bar, 0px)); z-index: 25; background: #fff; border: 1px solid #dcdcde; margin-top: 0; }
+@media print { .mitoschk-progress { position: static; box-shadow: none; } }
